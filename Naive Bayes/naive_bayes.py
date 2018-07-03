@@ -8,7 +8,6 @@ f(x) = argmax (prior*likelyhood)
 import numpy as np
 from sklearn import datasets
 
-
 def load_data():
 	# load iris dataset from sklearn api
 	# dictionary-linke object which has atrributes
@@ -44,30 +43,52 @@ def load_data():
 
 	return train_set, test_set
 
-def train_NB_classifier(data, labels):
-	# count numbers of samples in dataset
-	num_samples = len(labels)
-	num_class = len(set(lables))
+def data_analysis(data, labels):
+	'''
+	This function is to analyze data
+	Obtain value sets of attributes
+	[class, attribute, values]
+	'''
+	#data, labels = train_set['data'], train_set['labels']
+	value_sets = []
 
-	# dimensionality of data
+	num_class = len(set(labels))
 	data_dim = len(data[0])
+
+	for i in range(num_class):
+		tmp_class = []
+		for i in range(data_dim):
+			tmp_set = np.asarray(set(data[:, i]))
+			tmp_class.append(tmp_set)
+		value_sets.append(tmp_class)
+
+	return value_sets, num_class, data_dim
+
+
+def train_NB_classifier(train_set, value_sets):
+	# count numbers of samples in dataset
+	data, labels = train_set['data'], train_set['labels']
+	value_sets, num_class, data_dim = data_analysis(data, labels)
 
 	# create zero arrays for prior and conditional probability
 	prior_prob = np.zeros(num_class)
-	con_prob = np.zero((num_class, data_dim))
+	# con_prob = np.zero((num_class, data_dim))
 
 	# traverse all samples in dataset
 	for i, feature in enumerate(data):
-		category = labels[i]
 
+		category = labels[i]
 		prior_prob[category] += 1
 
-		for j in range(data_dim):
-			# 这里需要统计各个属性的可能取值
-			# 并分别计算条件概率用于累乘
+		class_values = value_sets[category]
 
-	# calculate prior and conditional probability
+		for j in range(data_dim):
+			# 这里需要统计各个属性的可能取值, 并分别计算条件概率用于累乘
+			index = np.where(class_values[j] == feature[j])
+			
 
 if __name__ == '__main__':
 	train_set, test_set = load_data()
-	print(test_set['data'])
+	value_sets = data_analysis(train_set['data'], train_set['labels'])
+	print(value_sets)
+	
