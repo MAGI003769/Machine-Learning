@@ -1,14 +1,16 @@
 '''
-Author: Ruihao Wang
+@author: Ruihao Wang
 Description: Implementaiton of naive bayes classifier
 
 f(x) = argmax (prior*likelyhood)
+
+API reference: http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
 '''
 
 import numpy as np
 from sklearn import datasets
 
-def load_data():
+def load_data_sep():
 	# load iris dataset from sklearn api
 	# dictionary-linke object which has atrributes
 	# 'data', 'target', 'feature_names', 
@@ -43,52 +45,99 @@ def load_data():
 
 	return train_set, test_set
 
-def data_analysis(data, labels):
-	'''
-	This function is to analyze data
-	Obtain value sets of attributes
-	[class, attribute, values]
-	'''
-	#data, labels = train_set['data'], train_set['labels']
-	value_sets = []
-
-	num_class = len(set(labels))
-	data_dim = len(data[0])
-
-	for i in range(num_class):
-		tmp_class = []
-		for i in range(data_dim):
-			tmp_set = np.asarray(set(data[:, i]))
-			tmp_class.append(tmp_set)
-		value_sets.append(tmp_class)
-
-	return value_sets, num_class, data_dim
+def load_data():
+	iris = datasets.load_iris()
+	X = iris.data
+	Y = iris.target
+	return X, Y
 
 
-def train_NB_classifier(train_set, value_sets):
-	# count numbers of samples in dataset
-	data, labels = train_set['data'], train_set['labels']
-	value_sets, num_class, data_dim = data_analysis(data, labels)
 
-	# create zero arrays for prior and conditional probability
-	prior_prob = np.zeros(num_class)
-	# con_prob = np.zero((num_class, data_dim))
+class MultinomialNB(object):
 
-	# traverse all samples in dataset
-	for i, feature in enumerate(data):
+	def __init__(self, lambda_=0.5, fit_prior=True, class_prior=None):
+		self.lambda_ = lambda_
+		self.fit_prior = fit_prior
+		self.class_prior = class_prior
+		self.classes = None
+		self.conditional_prob = None
 
-		category = labels[i]
-		prior_prob[category] += 1
+	def _feature_prob(self, features):
+		total_num = float(len(features))
+		values = np.unique(features)
+		value_num = float(len(values))
+		value_prob = {}
+		for v in values:
+			value_prob[v] = (np.sum(np.equal(features, v)) + self.lambda_) / (total_num + value_num * self.lambda_)
+		return value_prob
 
-		class_values = value_sets[category]
+	def fit(self, X, Y):
 
-		for j in range(data_dim):
-			# 这里需要统计各个属性的可能取值, 并分别计算条件概率用于累乘
-			index = np.where(class_values[j] == feature[j])
-			
+		self.classes = np.unique(Y)
+
+		# 计算类别先验 P(Y=c_k)
+		if self.class_prior == None:
+			class_num = float(len(self.classes))
+			if not self.fit_prior:
+				self.class_prior = [1.0/class_num for _ in range(class_num)] # uniform distribution
+			else:
+				self.class_prior = []
+				sample_num = float(len(Y))
+				for c in self.classes:
+					c_num = np.sum(np.equal(Y, c))
+					self.class_prior.append((c_num + self.lambda_)/(sample_num + class_num*self.lambda_))
+
+		# 计算条件概率(likelyhood)
+		self.conditional_prob = {}
+		for c in self.classes:
+			self.conditional_prob[c] = {}
+			for i in range(X.shape[1]):
+				features = X[np.equal(Y, c)][:, i]
+				self.conditional_prob[c][i] = self._feature_prob(features)
+		return self
+
+	# ????
+	def _get_xj_prob(self, values_prob, target_value):
+		return values_prob[target_value]
+
+	def _predict_one(self, x):
+
+		# 需要对最终的后验概率及返回结果做初始化
+		label = 0
+		max_posterior_prob = 0
+
+		# 对每个类别分别计算后验概率
+		for c_index in range(len(self.classes)):
+			current_class_prior = self.class_prior[c_index]
+			current_conditional_prob = 1.0
+			feature_prob = self.conditional_prob[self.classes[c_index]]
+			j = 0
+			for feature_i in feature_prob.keys():
+				print('Current feature_prob: \n', feature_prob[feature_i])
+				current_conditional_prob *= self._get_xj_prob(feature_prob[feature_i], x[j])
+				j += 1
+			print('Class i over !!!')
+			if current_class_prior * current_conditional_prob > max_posterior_prob:
+				max_posterior_prob = current_class_prior * current_conditional_prob
+				label = self.classes[c_index]
+		return label
+
+	def predict(self, X):
+		if X.ndim == 1:
+			return self._predict_one(X)
+		else:
+			labels = []
+			for i, sample in enumerate(X):
+				print('This {}th sample.'.format(i))
+				lable = self._predict_one(sample)
+				labels.append(label)
+			return labels
 
 if __name__ == '__main__':
-	train_set, test_set = load_data()
-	value_sets = data_analysis(train_set['data'], train_set['labels'])
-	print(value_sets)
+	X, Y = load_data()
+	print(X)
+	print(Y)
+	nb = MultinomialNB()
+	nb.fit(X, Y)
+	prediction = nb.predict(X[1])
 	
