@@ -1,6 +1,6 @@
 # Machine Learning
 
-This repository records learning outcomes and practice code in the field of machine learning. Some notes are updated in my blog at the same time. Basically, the learning route is guided by Li Hang's book. 
+This repository records learning outcomes and practice code in the field of machine learning. Some notes are updated in my blog at the same time. Basically, the learning route is guided by Hang Li's book. 
 
 # Models to implement
 
@@ -11,7 +11,9 @@ This repository records learning outcomes and practice code in the field of mach
 - [x] Logistic Regression
 - [x] Decision Tree (Simple)
 - [ ] Decision Tree Pruning
-- [ ] SVM
+- [x] SVM
+- [ ] AdaBoost
+- [ ] EM Algorithm
 
 # Reference Books
 
@@ -25,4 +27,5 @@ This repository records learning outcomes and practice code in the field of mach
 - [MachineLearning](https://github.com/apachecn/MachineLearning)
 - [lihang_book_algorithm](https://github.com/WenDesi/lihang_book_algorithm)
 - [lihang-code](https://github.com/fengdu78/lihang-code)
+- [statistical-learning-method](https://github.com/wzyonggege/statistical-learning-method)
 - [PRML](https://github.com/ctgk/PRML)
